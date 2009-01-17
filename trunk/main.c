@@ -1,7 +1,7 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/skbuff.h>
-#include <linux/ip.h>		/* For IP header */
+#include <linux/ip.h>
 #include <linux/netfilter.h>
 #include <linux/netfilter_ipv4.h>
 #include "util.h"
@@ -22,7 +22,6 @@ unsigned int hook_func (unsigned int hooknum,
 
 	if (host_addr == drop_ip)
 	{
-		/* Refazer isto para enderecar directamente o byte certo sem fazer ops */
 
 		printk("Dropped packet from :  %d.%d.%d.%d\n", (host_addr & 0xff000000) >> 24,
 			(host_addr & 0x00ff0000) >> 16,	(host_addr & 0x0000ff00) >> 8,(host_addr & 0x000000ff));
@@ -62,6 +61,5 @@ struct dentry * new_proc_lookup(struct inode *i, struct dentry *d, struct nameid
 
 int new_proc_readdir(struct file *a, void *b, filldir_t c)
 {
-	printk("My proc read dir called.\n");
 	return proc_original_file_operations.readdir(a, b, c);
 }
