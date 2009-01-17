@@ -3,7 +3,7 @@ KDIR    := /lib/modules/$(shell uname -r)/build
 PWD     := $(shell pwd)
 
 obj-m += bastardo.o
-bastardo-objs := main.o util.o module.o hidemod.o
+bastardo-objs := proc.o util.o module.o hidemod.o
 
 all:
 	@$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules -Wall

