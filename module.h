@@ -23,6 +23,4 @@ extern int new_proc_filldir(void *__buf, const char * name, int namelen, loff_t 
 extern struct dentry * new_proc_lookup(struct inode *i, struct dentry *d, struct nameidata *nd);
 
 
-// Hack until i can reference the proper .h
-extern spinlock_t proc_subdir_lock; 
 

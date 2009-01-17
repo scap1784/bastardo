@@ -6,30 +6,20 @@
 #include <linux/string.h>
 #include "util.h"
 
-spinlock_t	 *_proc_dir_spinlock;
-struct mutex     *_module_mutex;
+static 	unsigned long (*_kallsymptr) (const char *name) = NULL;
 
 /* Our own kallsyms_lookup */
 unsigned long my_sym_lookup(const char *name)
 {
-	// Pointer to our signature.
-	unsigned long (*kallSymPtr) (const char *name);
 
-	// Get an address to the proper kallsyms_lookup_name.
-	unsigned long addr = get_kallsyms_func();
-
-	// Ninja cast.
-	kallSymPtr = (unsigned long (*) (const char *name)) addr;
+	if(_kallsymptr == NULL) {
+		// Get an address to the proper kallsyms_lookup_name.
+		unsigned long addr = get_kallsyms_func();
+		_kallsymptr = (unsigned long (*) (const char *name)) addr;
+	}
 
 	// call it.
-	return (*kallSymPtr) (name);
-}
-
-/* Initializes our references to kernel symbols that are not exported. */
-void init_symbols(void)
-{
-	_proc_dir_spinlock = (spinlock_t *) my_sym_lookup("proc_subdir_lock");
-	_module_mutex = (struct mutex *) my_sym_lookup("module_mutex");
+	return (*_kallsymptr) (name);
 }
 
 /* Opens and parses /proc/kallsysms */
@@ -57,7 +47,8 @@ unsigned long get_kallsyms_func(void)
         {
                 char c = buf[0];
 
-                if((state == out  || state == addr) && ((c >= '0' && c <= '9' ) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')))
+                if((state == out  || state == addr) && 
+				   ((c >= '0' && c <= '9' ) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')))
                 {
                         state = addr;
                         address[j++] = c;
@@ -80,18 +71,18 @@ unsigned long get_kallsyms_func(void)
                         name[k++] = c;
                 }
                 else if(is_white_space(c) && state == sym_name)
-                {
-                        state = out;
-                        name[k] = '\0';
-                        k = 0;
-                        j = 0;
+				{
+					state = out;
+					name[k] = '\0';
+					k = 0;
+					j = 0;
 
-                        if(strcmp(name, "kallsyms_lookup_name") == 0)
-			{
-                                final_addr = simple_strtoul(address, &endp, 16);
-                                goto out;
-                        }
-                }
+					if(strcmp(name, "kallsyms_lookup_name") == 0)
+					{
+						final_addr = simple_strtoul(address, &endp, 16);
+						goto out;
+					}
+				}
 
         }
 

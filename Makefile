@@ -1,5 +1,5 @@
 KVERSION := `uname -r`
-KDIR    := /usr/src/linux
+KDIR    := /lib/modules/$(shell uname -r)/build
 PWD     := $(shell pwd)
 
 obj-m += bastardo2.o
