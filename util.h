@@ -1,3 +1,6 @@
+#ifndef _UTIL_H_
+#define _UTIL_H_
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/version.h>
@@ -16,9 +19,9 @@
 extern spinlock_t 	*_proc_dir_spinlock;
 extern struct mutex 	*_module_mutex;
 
-extern int is_white_space(char c);
+extern inline int is_white_space(char c);
 extern unsigned long my_sym_lookup(const char *name);
 extern unsigned long get_kallsyms_func(void);
 extern void init_symbols(void);
 
-
+#endif

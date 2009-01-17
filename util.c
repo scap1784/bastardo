@@ -101,7 +101,7 @@ out:
 	return final_addr;
 }
 
-static int inline is_white_space(char c)
+int inline is_white_space(char c)
 {
 	return c == '\n' || c == '\r' || c == '\t';
 }

