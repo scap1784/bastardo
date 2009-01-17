@@ -9,6 +9,7 @@
 #include "util.h"
 #include "module.h"
 #include "hidemod.h"
+#include <linux/workqueue.h>
 
 
 /* This is the structure we shall use to register our function */
